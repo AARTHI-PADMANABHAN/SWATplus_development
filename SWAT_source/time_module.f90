@@ -3,6 +3,7 @@
       implicit none
 
       !integer :: int_print = 1       !! current interval between daily prints
+      real :: total_time = 0.0  ! Declare total_time as a module variable
       character (len=25) :: cal_sim = " Original Simulation"
       real :: cal_adj = 0.0
       real :: yrs_print

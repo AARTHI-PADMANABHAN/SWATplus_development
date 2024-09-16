@@ -10,6 +10,7 @@
 
 !!    ~ ~ ~ ~ ~ ~ END SPECIFICATIONS ~ ~ ~ ~ ~ ~
 
+      use hdf5
       use time_module
       use hydrograph_module
       use ru_module
@@ -52,6 +53,11 @@
       integer dum,i_count                    !rtb gwflow
       integer :: i_mfl,i_chan,i_hyd,chan_num !rtb gwflow; counter
       real :: sumflo
+      integer :: start_time, end_time, clock_rate
+      real :: elapsed_time
+
+    ! Get the clock rate
+    call system_clock(count_rate=clock_rate)
 
       icmd = sp_ob1%objs
       do while (icmd /= 0)
@@ -412,9 +418,25 @@
         do isd = 1, sp_ob%hru_lte
           call hru_lte_output (isd)
         end do
-        
+
+        ! Get the clock rate
+        call system_clock(count_rate=clock_rate)
+
         do ihru = 1, sp_ob%hru
+          ! Start timing before the hru_output call
+          call system_clock(start_time)
+
           call hru_output (ihru)
+
+          ! End timing after the hru_output call
+          call system_clock(end_time)
+
+          ! Calculate the time for this ihru
+          elapsed_time = real(end_time - start_time) / real(clock_rate)
+
+          ! Update the total_time in the time_module
+          total_time = total_time + elapsed_time
+
           if (hru(ihru)%dbs%surf_stor > 0) then
             call wetland_output(ihru)
           end if
@@ -429,7 +451,7 @@
               ob(icmd)%hd_aa(ihyd) = ob(icmd)%hd_aa(ihyd) + ob(icmd)%hd(ihyd)
             end do
           end if
-        end do        
+        end do      
         
         do iaq = 1, sp_ob%aqu
           call aquifer_output (iaq)
@@ -522,7 +544,18 @@
       
 102   format(i6,11x,i3,8x,i5,5x,1000(f16.4))
 103   format(4i6,2i8,2x,a,35f12.3)      
-
       
       return
       end
+
+
+
+
+
+
+
+
+
+
+
+
